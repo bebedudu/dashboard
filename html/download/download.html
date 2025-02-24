@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Operations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .tab-buttons {
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            margin-right: 10px;
+        }
+        .tab-button.active {
+            background-color: #ddd;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .folder-input {
+            margin-bottom: 10px;
+        }
+        #terminal-log {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: black;
+            color: white;
+            font-family: monospace;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .progress {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .file-count {
+            margin-left: 10px;
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tab Buttons -->
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('basic')">Basic Deletion</button>
+        <button class="tab-button" onclick="switchTab('advanced')">Advanced Deletion</button>
+        <button class="tab-button" onclick="switchTab('download')">Download Files</button>
+    </div>
+
+    <!-- Basic Deletion Tab -->
+    <div id="basic-tab" class="tab-content active">
+        <!-- Existing Basic Deletion Code -->
+    </div>
+
+    <!-- Advanced Deletion Tab -->
+    <div id="advanced-tab" class="tab-content">
+        <!-- Existing Advanced Deletion Code -->
+    </div>
+
+    <!-- Download Files Tab -->
+    <div id="download-tab" class="tab-content">
+        <h1>Download Files</h1>
+
+        <div>
+            <label>
+                <input type="radio" name="downloadAction" value="downloadInRange"> Download Files within Date and Time Range
+            </label>
+        </div>
+        <div>
+            <label>
+                <input type="radio" name="downloadAction" value="downloadCount"> Download a Specific Number of Files
+            </label>
+        </div>
+        <div>
+            <label>
+                <input type="radio" name="downloadAction" value="downloadByUser"> Download Files by Unique User Name
+            </label>
+        </div>
+
+        <!-- Folder-Specific Inputs -->
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="downloadFolderPath1" value="uploads/cache">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="downloadStartDate1" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="downloadStartTime1" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="downloadEndDate1" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="downloadEndTime1" placeholder="e.g., 235959">
+            <label>Number of Files to Download:</label>
+            <input type="number" id="downloadFileCount1" min="0" placeholder="Files to download">
+            <label>User Name (if applicable):</label>
+            <input type="text" id="downloadUserName1" placeholder="e.g., bibek_1BBDF0EE-FCAA-EC11-9269-8CB87EED61E1">
+        </div>
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="downloadFolderPath2" value="uploads/config">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="downloadStartDate2" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="downloadStartTime2" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="downloadEndDate2" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="downloadEndTime2" placeholder="e.g., 235959">
+            <label>Number of Files to Download:</label>
+            <input type="number" id="downloadFileCount2" min="0" placeholder="Files to download">
+            <label>User Name (if applicable):</label>
+            <input type="text" id="downloadUserName2" placeholder="e.g., bibek_1BBDF0EE-FCAA-EC11-9269-8CB87EED61E1">
+        </div>
+        <!-- Repeat for other folders -->
+
+        <button onclick="performDownload()">Download Files</button>
+
+        <div id="downloadResult"></div>
+
+        <!-- Terminal-like log -->
+        <div id="downloadTerminalLog" style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; background-color: black; color: white; font-family: monospace;"></div>
+    </div>
+
+    <script src="dnldscript.js"></script>
+</body>
+</html>

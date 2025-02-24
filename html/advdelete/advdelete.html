@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Files from GitHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+
+        .tab-buttons {
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            margin-right: 10px;
+        }
+
+        .tab-button.active {
+            background-color: #ddd;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .folder-input {
+            margin-bottom: 10px;
+        }
+
+        #terminal-log {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: black;
+            color: white;
+            font-family: monospace;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .progress {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .file-count {
+            margin-left: 10px;
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Tab Buttons -->
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('basic')">Basic Deletion</button>
+        <button class="tab-button" onclick="switchTab('advanced')">Advanced Deletion</button>
+    </div>
+
+    <!-- Basic Deletion Tab -->
+    <div id="basic-tab" class="tab-content active">
+        <h1>Delete Files from Selected Folders</h1>
+
+        <!-- Folder Selection -->
+        <div class="folder-input">
+            <label><input type="checkbox" id="configCheckbox"> config</label>
+            <span id="configFileCount" class="file-count"></span>
+            <input type="number" id="configCount" min="0" placeholder="Files to delete">
+            <span id="configProgress" class="progress"></span>
+        </div>
+        <div class="folder-input">
+            <label><input type="checkbox" id="cacheCheckbox"> cache</label>
+            <span id="cacheFileCount" class="file-count"></span>
+            <input type="number" id="cacheCount" min="0" placeholder="Files to delete">
+            <span id="cacheProgress" class="progress"></span>
+        </div>
+        <div class="folder-input">
+            <label><input type="checkbox" id="screenshotsCheckbox"> screenshots</label>
+            <span id="screenshotsFileCount" class="file-count"></span>
+            <input type="number" id="screenshotsCount" min="0" placeholder="Files to delete">
+            <span id="screenshotsProgress" class="progress"></span>
+        </div>
+        <div class="folder-input">
+            <label><input type="checkbox" id="logsCheckbox"> logs</label>
+            <span id="logsFileCount" class="file-count"></span>
+            <input type="number" id="logsCount" min="0" placeholder="Files to delete">
+            <span id="logsProgress" class="progress"></span>
+        </div>
+        <div class="folder-input">
+            <label><input type="checkbox" id="keylogerrorCheckbox"> keylogerror</label>
+            <span id="keylogerrorFileCount" class="file-count"></span>
+            <input type="number" id="keylogerrorCount" min="0" placeholder="Files to delete">
+            <span id="keylogerrorProgress" class="progress"></span>
+        </div>
+
+        <button onclick="deleteFiles()">Delete Files</button>
+
+        <div id="result"></div>
+
+        <!-- Terminal-like log -->
+        <div id="terminal-log"></div>
+    </div>
+
+    <!-- Advanced Deletion Tab -->
+    <div id="advanced-tab" class="tab-content">
+        <h1>Advanced Deletion Options</h1>
+
+        <div>
+            <label>
+                <input type="radio" name="action" value="stopOnFile"> Stop Deletion when a Specific File is Found
+            </label>
+        </div>
+        <div>
+            <label>
+                <input type="radio" name="action" value="deleteOnFile"> Delete when a Specific File is Found
+            </label>
+        </div>
+        <div>
+            <label>
+                <input type="radio" name="action" value="deleteInRange"> Delete Files within Date and Time Range
+            </label>
+        </div>
+
+        <!-- Folder-Specific Inputs -->
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="advancedFolderPath1" value="uploads/cache">
+            <label>Stop/Delete File Name (if applicable):</label>
+            <input type="text" id="advancedFileName1" placeholder="e.g., STOP_FILE_NAME.cache">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="startDate1" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="startTime1" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="endDate1" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="endTime1" placeholder="e.g., 235959">
+        </div>
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="advancedFolderPath2" value="uploads/config">
+            <label>Stop/Delete File Name (if applicable):</label>
+            <input type="text" id="advancedFileName2" placeholder="e.g., STOP_FILE_NAME.config">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="startDate2" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="startTime2" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="endDate2" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="endTime2" placeholder="e.g., 235959">
+        </div>
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="advancedFolderPath3" value="uploads/logs">
+            <label>Stop/Delete File Name (if applicable):</label>
+            <input type="text" id="advancedFileName3" placeholder="e.g., STOP_FILE_NAME.log">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="startDate3" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="startTime3" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="endDate3" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="endTime3" placeholder="e.g., 235959">
+        </div>
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="advancedFolderPath4" value="uploads/keylogerror">
+            <label>Stop/Delete File Name (if applicable):</label>
+            <input type="text" id="advancedFileName4" placeholder="e.g., STOP_FILE_NAME.log">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="startDate4" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="startTime4" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="endDate4" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="endTime4" placeholder="e.g., 235959">
+        </div>
+        <div class="folder-input">
+            <label>Folder Path:</label>
+            <input type="text" id="advancedFolderPath5" value="uploads/screenshots">
+            <label>Stop/Delete File Name (if applicable):</label>
+            <input type="text" id="advancedFileName5" placeholder="e.g., STOP_FILE_NAME.png">
+            <label>Start Date (YYYYMMDD):</label>
+            <input type="text" id="startDate5" placeholder="e.g., 20250125">
+            <label>Start Time (HHMMSS):</label>
+            <input type="text" id="startTime5" placeholder="e.g., 134535">
+            <label>End Date (YYYYMMDD):</label>
+            <input type="text" id="endDate5" placeholder="e.g., 20250125">
+            <label>End Time (HHMMSS):</label>
+            <input type="text" id="endTime5" placeholder="e.g., 235959">
+        </div>
+
+        <button onclick="performAdvancedDeletion()">Delete Files</button>
+
+        <div id="advancedResult"></div>
+
+        <!-- Terminal-like log -->
+        <div id="advancedTerminalLog"
+            style="margin-top: 20px; border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; background-color: black; color: white; font-family: monospace;">
+        </div>
+    </div>
+
+    <script src="advscript.js"></script>
+</body>
+
+</html>
