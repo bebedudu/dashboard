@@ -1,4 +1,4 @@
-Implement user authentication for the dashboard with role-based access
+Implement user authentication for the dashboard with role-based access (hello world)
 
 Detailed User Activity Information
 System Info (OS, CPU, RAM, etc.)
