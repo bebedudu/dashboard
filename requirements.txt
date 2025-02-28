@@ -5,3 +5,4 @@ plotly
 streamlit-image-zoom
 pytz
 zoneinfo
+ipinfo
